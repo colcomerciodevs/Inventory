@@ -27,8 +27,8 @@ def parse_excel(file):
     try:
         # Iterar por las filas del archivo Excel (omitiendo la cabecera)
         for row in sheet.iter_rows(min_row=2, values_only=True):
-            # Extraer columnas según el orden: host, grupo, IP, usuario, descripción
-            host, group, ip, user, description = row
+            # Extraer columnas según el orden: host, grupo, IP, usuario, descripción, intérprete Python
+            host, group, ip, user, description, python_interpreter = row
 
             # Validar que las columnas obligatorias tengan datos
             if not host or not group or not ip or not user:
@@ -40,12 +40,16 @@ def parse_excel(file):
                 inventory[group] = {"hosts": [], "vars": {}}
             inventory[group]["hosts"].append(host)
 
-            # Agregar variables del host, incluida la descripción
+            # Agregar variables del host
             inventory["_meta"]["hostvars"][host] = {
                 "ansible_host": ip,
                 "ansible_user": user,
                 "description": description or "No description provided"
             }
+
+            # Agregar el campo ansible_python_interpreter si está definido en el Excel
+            if python_interpreter:
+                inventory["_meta"]["hostvars"][host]["ansible_python_interpreter"] = python_interpreter
 
     except Exception as e:
         print(f"Error al procesar el archivo Excel: {e}")
@@ -79,3 +83,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
